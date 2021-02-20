@@ -55,11 +55,15 @@ class ReqSpider(scrapy.Spider):
         soup = BeautifulSoup(response.body, features='lxml')
         article_title = ' '.join(soup.find_all(class_='article-title')[0].text.replace('\n', '').replace('\t', '').split()[:-1])
         article_body = soup.find_all(class_='article-body')[0].find_all(class_='col-xs-8')[0].text.replace('\n', '').replace('\t', '')
+        article_summary = soup.find_all(class_='delfi-article-lead')[0].text.replace('\n', '')
         yield {
             'article_title': article_title,
+            'article_summary': article_summary,
             'article_body': article_body
         }
-        soup
+        for hrefelem in list(soup.find_all(class_='CBarticleTitle')):
+            href = hrefelem.attrs['href']
+            yield response.follow(href, self.parse)
 
     @classmethod
     def run(cls, dependencies):
