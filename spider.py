@@ -3,8 +3,10 @@ from dataclasses import dataclass
 from typing import List
 
 import scrapy
+from bs4 import BeautifulSoup
 from scrapy import Request
 from scrapy.crawler import CrawlerProcess
+from scrapy.exporters import CsvItemExporter
 
 
 @dataclass
@@ -19,6 +21,15 @@ class ReqSpiderDependenciesFactory:
             start_urls=start_urls,
             scrapy_settings=dict(
                 LOG_ENABLED=False,
+                FAKEUSERAGENT_PROVIDERS=[
+                    'scrapy_fake_useragent.providers.FakeUserAgentProvider',  # this is the first provider we'll try
+                    'scrapy_fake_useragent.providers.FakerProvider',
+                    # if FakeUserAgentProvider fails, we'll use faker to generate a user-agent string for us
+                    'scrapy_fake_useragent.providers.FixedUserAgentProvider',  # fall back to USER_AGENT value
+                ],
+                USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36',
+                FEED_FORMAT='json',
+                FEED_URI='output.json',
             )
         )
 
@@ -41,11 +52,10 @@ class ReqSpider(scrapy.Spider):
             yield Request(url=url)
 
     def parse(self, response, **kwargs):
-        page = response.url.split("/")[-2]
-        filename = f'quotes-{page}.html'
-        with open(filename, 'wb') as f:
-            f.write(response.body)
-        self.log(f'Saved file {filename}')
+        soup = BeautifulSoup(response.body, features='lxml')
+        article_title = ' '.join(soup.find_all(class_='article-title')[0].text.replace('\n', '').replace('\t', '').split()[:-1])
+        yield {'article_title': article_title}
+        soup
 
     @classmethod
     def run(cls, dependencies):

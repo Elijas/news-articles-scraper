@@ -7,8 +7,7 @@ def main():
 
     dependencies_factory = ReqSpiderDependenciesFactory(
         start_urls=[
-            'http://quotes.toscrape.com/page/1/',
-            'http://quotes.toscrape.com/page/2/',
+            'https://www.delfi.lt/news/daily/world/zymus-britu-istorikas-universitetuose-valdzia-uzgrobe-kairieji.d?id=86510023'
         ],
     )
     with dependencies_factory.build_context() as dependencies:
