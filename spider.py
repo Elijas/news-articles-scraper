@@ -28,8 +28,8 @@ class ReqSpiderDependenciesFactory:
                     'scrapy_fake_useragent.providers.FixedUserAgentProvider',  # fall back to USER_AGENT value
                 ],
                 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36',
-                FEED_FORMAT='json',
-                FEED_URI='output.json',
+                FEED_FORMAT='csv',
+                FEED_URI='output.csv',
             )
         )
 
@@ -54,7 +54,9 @@ class ReqSpider(scrapy.Spider):
     def parse(self, response, **kwargs):
         soup = BeautifulSoup(response.body, features='lxml')
         article_title = ' '.join(soup.find_all(class_='article-title')[0].text.replace('\n', '').replace('\t', '').split()[:-1])
-        yield {'article_title': article_title}
+        yield {
+            'article_title': article_title
+        }
         soup
 
     @classmethod
